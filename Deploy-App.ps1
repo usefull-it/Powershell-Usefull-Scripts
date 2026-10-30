@@ -757,11 +757,11 @@ function Invoke-DeployCimCreate {
         [Parameter(Mandatory)]$CimSession,
         [Parameter(Mandatory)][string]$FolderName
     )
-    $args = @{
+    $cimArguments = @{
         CommandLine      = Get-DeployInstallCommandLine
         CurrentDirectory = Get-DeployRemoteTargetPath -FolderName $FolderName
     }
-    return Invoke-CimMethod -CimSession $CimSession -ClassName 'Win32_Process' -MethodName 'Create' -Arguments $args
+    return Invoke-CimMethod -CimSession $CimSession -ClassName 'Win32_Process' -MethodName 'Create' -Arguments $cimArguments
 }
 
 function Start-DeployInstall {
