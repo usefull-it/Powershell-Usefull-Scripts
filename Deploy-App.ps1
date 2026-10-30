@@ -2,6 +2,34 @@ param(
     [string]$ComputerList
 )
 
+function Test-DeployIsIseHost {
+    param(
+        [string]$HostName,
+        [switch]$HasPsIse
+    )
+    if ($HasPsIse) { return $true }
+    if ($HostName -eq 'Windows PowerShell ISE Host') { return $true }
+    return $false
+}
+
+if ($MyInvocation.InvocationName -ne '.') {
+    $deployHasPsIse = $false
+    $deployPsIseVar = Get-Variable -Name 'psISE' -ErrorAction SilentlyContinue
+    if ($null -ne $deployPsIseVar -and $null -ne $deployPsIseVar.Value) {
+        $deployHasPsIse = $true
+    }
+    $deployHostName = ''
+    if ($null -ne $Host -and $null -ne $Host.Name) {
+        $deployHostName = [string]$Host.Name
+    }
+    if (Test-DeployIsIseHost -HostName $deployHostName -HasPsIse:$deployHasPsIse) {
+        $deployIseError = 'ERROR: This script cannot run in Windows PowerShell ISE. Run Deploy-App.cmd or %SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File Deploy-App.ps1'
+        Write-Host $deployIseError -ForegroundColor Red
+        Write-Error $deployIseError
+        exit 1
+    }
+}
+
 $script:DeployLogWriter = $null
 $script:DeployInstallLimit = [timespan]::FromMinutes(15)
 
