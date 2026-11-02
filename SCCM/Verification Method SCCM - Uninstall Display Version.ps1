@@ -1,9 +1,11 @@
-﻿# Przed użyciem w SCCM zmień:
-# - $DisplayName na nazwę z Programy i funkcje; * jest dozwolone, np. 'Vendor App*'
-#   samo '*' jest ignorowane
-# - $ExpectedVersion na DisplayVersion; zostaw puste, jeśli wystarczy sama nazwa
-# - $Compare na Equals (dokładnie ta wersja) albo Minimum (ta wersja lub nowsza)
-# Sprawdzane są oba klucze Uninstall. Write-Host i exit 0 zostaw bez zmian.
+<#
+ Przed użyciem w SCCM zmień:
+- $DisplayName na nazwę z Programy i funkcje; * jest dozwolone, np. 'Vendor App*'
+  samo '*' jest ignorowane
+- $ExpectedVersion na DisplayVersion; zostaw puste, jeśli wystarczy sama nazwa
+- $Compare na Equals (dokładnie ta wersja) albo Minimum (ta wersja lub nowsza)
+Sprawdzane są oba klucze Uninstall. Write-Host i exit 0 zostaw bez zmian.
+#>
 
 $ErrorActionPreference = 'Stop'
 
