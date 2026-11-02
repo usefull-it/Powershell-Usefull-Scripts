@@ -1,6 +1,8 @@
-﻿# Przed użyciem w SCCM zmień tylko $ProductCode na GUID produktu MSI, razem z nawiasami.
-# GUID jest we właściwościach MSI albo w kluczu Uninstall.
-# Skrypt działa jako SYSTEM i widzi instalacje per-machine. Write-Host i exit 0 zostaw bez zmian.
+<#
+Przed użyciem w SCCM zmień tylko $ProductCode na GUID produktu MSI, razem z nawiasami.
+GUID jest we właściwościach MSI albo w kluczu Uninstall.
+Skrypt działa jako SYSTEM i widzi instalacje per-machine. Write-Host i exit 0 zostaw bez zmian.
+#>
 
 $ErrorActionPreference = 'Stop'
 
