@@ -1,9 +1,11 @@
-﻿# Przed użyciem w SCCM zmień:
-# - $Manufacturer na producenta; * jest dozwolone, np. Intel*. Puste pomija ten filtr
-# - $DeviceClass na klasę, np. NET. Puste pomija ten filtr. Przynajmniej jedno z tych dwóch pól musi zostać
-# - $ExpectedVersion na DriverVersion, od 2 do 4 członów, np. 24.60.0.3
-# - $Compare na Equals (dokładnie ta wersja) albo Minimum (ta wersja lub nowsza)
-# Write-Host i exit 0 zostaw bez zmian.
+<#
+ Przed użyciem w SCCM zmień:
+- $Manufacturer na producenta; * jest dozwolone, np. Intel*. Puste pomija ten filtr
+- $DeviceClass na klasę, np. NET. Puste pomija ten filtr. Przynajmniej jedno z tych dwóch pól musi zostać
+- $ExpectedVersion na DriverVersion, od 2 do 4 członów, np. 24.60.0.3
+- $Compare na Equals (dokładnie ta wersja) albo Minimum (ta wersja lub nowsza)
+Write-Host i exit 0 zostaw bez zmian.
+#>
 
 $ErrorActionPreference = 'Stop'
 
