@@ -1,6 +1,8 @@
-﻿# Przed użyciem w SCCM zmień tylko $Path na pełną ścieżkę pliku albo folderu.
-# Przykład: C:\Program Files\App\app.exe
-# Skrypt działa jako SYSTEM. Write-Host i exit 0 zostaw bez zmian.
+<#
+Przed użyciem w SCCM zmień tylko $Path na pełną ścieżkę pliku albo folderu.
+Przykład: C:\Program Files\App\app.exe
+Skrypt działa jako SYSTEM. Write-Host i exit 0 zostaw bez zmian.
+#>
 
 $ErrorActionPreference = 'Stop'
 
