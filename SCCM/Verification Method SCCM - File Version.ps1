@@ -1,8 +1,10 @@
-﻿# Przed użyciem w SCCM zmień:
-# - $FilePath na pełną ścieżkę pliku z zasobem wersji
-# - $ExpectedVersion na wymaganą wersję, od 2 do 4 członów, np. 1.2.3.4
-# - $Compare na Equals (dokładnie ta wersja) albo Minimum (ta wersja lub nowsza)
-# Wersja jest brana z liczb w zasobie pliku, nie z tekstu FileVersion. Write-Host i exit 0 zostaw bez zmian.
+<#
+ Przed użyciem w SCCM zmień:
+- $FilePath na pełną ścieżkę pliku z zasobem wersji
+- $ExpectedVersion na wymaganą wersję, od 2 do 4 członów, np. 1.2.3.4
+- $Compare na Equals (dokładnie ta wersja) albo Minimum (ta wersja lub nowsza)
+- Wersja jest brana z liczb w zasobie pliku, nie z tekstu FileVersion. Write-Host i exit 0 zostaw bez zmian.
+#>
 
 $ErrorActionPreference = 'Stop'
 
