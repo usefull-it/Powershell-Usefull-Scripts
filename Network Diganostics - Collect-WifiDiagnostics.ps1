@@ -1,13 +1,15 @@
-﻿#Requires -Version 5.1
-# Zbiór diagnostyki Wi-Fi ze stacji domenowych (WinRM HTTP 5985, udział c$).
-# Uruchamiać z podniesionej sesji PowerShell na stacji administracyjnej, jako administrator domeny.
+<#
+Requires -Version 5.1
+Zbiór diagnostyki Wi-Fi ze stacji domenowych (WinRM HTTP 5985, udział c$).
+Uruchamiać z podniesionej sesji PowerShell na stacji administracyjnej, jako administrator domeny.
+#>
 
 # === KONFIGURACJA — edytuj przed uruchomieniem ===
 $ComputerListPath = Join-Path $PSScriptRoot 'hosts.txt'  # lista hostów: jeden hostname w linii
 $OutputRoot       = Join-Path $PSScriptRoot 'Output'     # wyniki: Output\<hostname>\
 $LogPath          = Join-Path $PSScriptRoot 'wifi-diag.log'
 $EventDays        = 7                                    # dziennik zdarzeń: ostatnie N dni
-# === KONIEC KONFIGURACJI ===
+        # === KONIEC KONFIGURACJI ===
 
 $RemoteStaging  = 'C:\Windows\Temp\WifiDiagCollect'
 $WlanReportHtml = 'C:\ProgramData\Microsoft\Windows\WlanReport\wlan-report-latest.html'
