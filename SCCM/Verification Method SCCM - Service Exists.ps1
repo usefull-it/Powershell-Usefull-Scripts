@@ -1,6 +1,8 @@
-﻿# Przed użyciem w SCCM zmień tylko $ServiceName na nazwę usługi z services.msc (pole Nazwa usługi).
-# Nie wpisuj nazwy wyświetlanej. Znaki * i ? są ignorowane.
-# Wystarczy, że usługa istnieje; nie musi działać. Write-Host i exit 0 zostaw bez zmian.
+﻿<#
+Przed użyciem w SCCM zmień tylko $ServiceName na nazwę usługi z services.msc (pole Nazwa usługi).
+Nie wpisuj nazwy wyświetlanej. Znaki * i ? są ignorowane.
+Wystarczy, że usługa istnieje; nie musi działać. Write-Host i exit 0 zostaw bez zmian.
+#>
 
 $ErrorActionPreference = 'Stop'
 
