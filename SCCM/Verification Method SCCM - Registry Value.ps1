@@ -1,8 +1,10 @@
-﻿# Przed użyciem w SCCM zmień:
-# - $KeyPath na klucz pod HKLM, bez HKLM:\ , np. SOFTWARE\Vendor\App
-# - $ValueName na nazwę wartości w tym kluczu
-# - $ExpectedValue na oczekiwany tekst; zostaw puste, jeśli wystarczy samo istnienie wartości
-# Sprawdzane są widoki 32- i 64-bitowe. Skrypt działa jako SYSTEM. Write-Host i exit 0 zostaw bez zmian.
+<#
+ Przed użyciem w SCCM zmień:
+- $KeyPath na klucz pod HKLM, bez HKLM:\ , np. SOFTWARE\Vendor\App
+- $ValueName na nazwę wartości w tym kluczu
+- $ExpectedValue na oczekiwany tekst; zostaw puste, jeśli wystarczy samo istnienie wartości
+Sprawdzane są widoki 32- i 64-bitowe. Skrypt działa jako SYSTEM. Write-Host i exit 0 zostaw bez zmian.
+#>
 
 $ErrorActionPreference = 'Stop'
 
