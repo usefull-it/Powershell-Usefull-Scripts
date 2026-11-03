@@ -1,16 +1,16 @@
-﻿<#
+<#
 Requires -Version 5.1
- Zbiór diagnostyki Wi-Fi ze stacji domenowych (WinRM HTTP 5985, udział c$).
- Uruchamiać z podniesionej sesji PowerShell na stacji administracyjnej, jako administrator domeny.
+ Collect Wi-Fi diagnostics from domain stations (WinRM HTTP 5985, c$ share).
+ Run from an elevated PowerShell session on an admin station, as a domain administrator.
 #>
 
 
-# === KONFIGURACJA — edytuj przed uruchomieniem === #
-$ComputerListPath = Join-Path $PSScriptRoot 'hosts.txt'  # lista hostów: jeden hostname w linii
-$OutputRoot       = Join-Path $PSScriptRoot 'Output'     # wyniki: Output\<hostname>\
+# === CONFIGURATION - edit before running === #
+$ComputerListPath = Join-Path $PSScriptRoot 'hosts.txt'  # hosts list: one hostname per line
+$OutputRoot       = Join-Path $PSScriptRoot 'Output'     # results: Output\<hostname>\
 $LogPath          = Join-Path $PSScriptRoot 'wifi-diag.log'
-$EventDays        = 7                                    # dziennik zdarzeń: ostatnie N dni
-            # === KONIEC KONFIGURACJI === #
+$EventDays        = 7                                    # event log: last N days
+            # === END CONFIGURATION === #
 
 $RemoteStaging  = 'C:\Windows\Temp\WifiDiagCollect'
 $WlanReportHtml = 'C:\ProgramData\Microsoft\Windows\WlanReport\wlan-report-latest.html'
@@ -37,8 +37,8 @@ if (-not (Test-Path -LiteralPath $OutputRoot)) {
     New-Item -ItemType Directory -Path $OutputRoot -Force | Out-Null
 }
 if (-not (Test-Path -LiteralPath $ComputerListPath)) {
-    Write-Log "Nie znaleziono listy hostów: $ComputerListPath" -Level Error
-    throw "Nie znaleziono listy hostów: $ComputerListPath"
+    Write-Log "Hosts list not found: $ComputerListPath" -Level Error
+    throw "Hosts list not found: $ComputerListPath"
 }
 
 $collect = {
@@ -69,7 +69,7 @@ $collect = {
             Export-Csv -Path $csv -NoTypeInformation -Encoding UTF8
     }
     else {
-        'Brak zdarzeń w zadanym oknie.' | Out-File -FilePath $csv -Encoding utf8
+        'No events in the requested window.' | Out-File -FilePath $csv -Encoding utf8
     }
 
     # MSFT_NetAdapter.NdisPhysicalMedium: Native 802.11 = 9, Wireless LAN = 1
@@ -81,7 +81,7 @@ $collect = {
         $wifi | Format-List -Property * | Out-File -FilePath $adapterFile -Encoding utf8
     }
     else {
-        'Brak adaptera Wi-Fi (NdisPhysicalMedium Native 802.11 / Wireless LAN).' |
+        'No Wi-Fi adapter (NdisPhysicalMedium Native 802.11 / Wireless LAN).' |
             Out-File -FilePath $adapterFile -Encoding utf8
     }
 
@@ -99,7 +99,7 @@ $collect = {
     }
 }
 
-Write-Log 'Start zbierania diagnostyki Wi-Fi.'
+Write-Log 'Start collecting Wi-Fi diagnostics.'
 
 $computers = foreach ($line in Get-Content -LiteralPath $ComputerListPath -Encoding UTF8) {
     $name = $line.Trim()
@@ -110,14 +110,14 @@ $computers = foreach ($line in Get-Content -LiteralPath $ComputerListPath -Encod
 
 foreach ($Computer in $computers) {
     try {
-        Write-Log "Start hosta: $Computer"
+        Write-Log "Start host: $Computer"
 
         try {
             $null = Test-WSMan -ComputerName $Computer -ErrorAction Stop
             Write-Log "WinRM OK: $Computer" -Level Success
         }
         catch {
-            Write-Log "WinRM nieudany, pominięto: $Computer — $($_.Exception.Message)" -Level Error
+            Write-Log "WinRM failed, skipped: $Computer - $($_.Exception.Message)" -Level Error
             continue
         }
 
@@ -128,24 +128,24 @@ foreach ($Computer in $computers) {
             -ArgumentList $EventDays, $RemoteStaging, $WlanReportHtml -ErrorAction Stop
 
         if ($result.WifiAdapterCount -eq 0) {
-            Write-Log "Brak adaptera Wi-Fi: $Computer" -Level Warn
+            Write-Log "No Wi-Fi adapter: $Computer" -Level Warn
         }
         if (-not $result.WlanReportCopied) {
-            Write-Log "Brak pliku wlanreport HTML: $Computer" -Level Warn
+            Write-Log "Missing wlanreport HTML: $Computer" -Level Warn
         }
 
         $uncRoot = '\\' + $Computer + '\c$' + $RemoteStaging.Substring(2)
-        Write-Log "Kopiowanie z $Computer..."
+        Write-Log "Copying from $Computer..."
         Copy-Item -Path ($uncRoot + '\*') -Destination $localDir -Force -ErrorAction Stop
-        Write-Log "Kopiowanie zakończone: $Computer" -Level Success
+        Write-Log "Copy finished: $Computer" -Level Success
 
         Remove-Item -LiteralPath $uncRoot -Recurse -Force -ErrorAction Stop
-        Write-Log "Usunięto katalog tymczasowy: $Computer" -Level Success
-        Write-Log "Zakończono hosta: $Computer" -Level Success
+        Write-Log "Removed temp folder: $Computer" -Level Success
+        Write-Log "Finished host: $Computer" -Level Success
     }
     catch {
-        Write-Log "Błąd [$Computer]: $($_.Exception.Message)" -Level Error
+        Write-Log "Error [$Computer]: $($_.Exception.Message)" -Level Error
     }
 }
 
-Write-Log 'Zakończono zbieranie diagnostyki Wi-Fi.' -Level Success
+Write-Log 'Finished collecting Wi-Fi diagnostics.' -Level Success
