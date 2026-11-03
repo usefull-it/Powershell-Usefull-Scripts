@@ -1,16 +1,16 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 <#
- Zbiór diagnostyki Ethernet ze stacji domenowych (WinRM HTTP 5985, udział c$).
- Uruchamiać z podniesionej sesji PowerShell na stacji administracyjnej, jako administrator domeny.
+ Collect Ethernet diagnostics from domain stations (WinRM HTTP 5985, c$ share).
+ Run from an elevated PowerShell session on an admin station, as a domain administrator.
 #>
 
 
-# === KONFIGURACJA — edytuj przed uruchomieniem === #
-$ComputerListPath = Join-Path $PSScriptRoot 'hosts.txt'  # lista hostów: jeden hostname w linii
-$OutputRoot       = Join-Path $PSScriptRoot 'OutputEthernet'  # wyniki: OutputEthernet\<hostname>\
+# === CONFIGURATION - edit before running === #
+$ComputerListPath = Join-Path $PSScriptRoot 'hosts.txt'  # hosts list: one hostname per line
+$OutputRoot       = Join-Path $PSScriptRoot 'OutputEthernet'  # results: OutputEthernet\<hostname>\
 $LogPath          = Join-Path $PSScriptRoot 'ethernet-diag.log'
-$EventDays        = 7                                    # dziennik zdarzeń: ostatnie N dni
-            # === KONIEC KONFIGURACJI === #
+$EventDays        = 7                                    # event log: last N days
+            # === END CONFIGURATION === #
 
 $RemoteStaging = 'C:\Windows\Temp\EthernetDiagCollect'
 
@@ -36,8 +36,8 @@ if (-not (Test-Path -LiteralPath $OutputRoot)) {
     New-Item -ItemType Directory -Path $OutputRoot -Force | Out-Null
 }
 if (-not (Test-Path -LiteralPath $ComputerListPath)) {
-    Write-Log "Nie znaleziono listy hostów: $ComputerListPath" -Level Error
-    throw "Nie znaleziono listy hostów: $ComputerListPath"
+    Write-Log "Hosts list not found: $ComputerListPath" -Level Error
+    throw "Hosts list not found: $ComputerListPath"
 }
 
 $collect = {
@@ -48,7 +48,7 @@ $collect = {
     }
     New-Item -ItemType Directory -Path $RemoteStaging -Force | Out-Null
 
-    # 5.1 WinRM: stderr native (np. dot3svc Stopped) staje się ErrorRecord; PS 2>&1 urwałby Invoke-Command -ErrorAction Stop.
+    # 5.1 WinRM: native stderr (e.g. dot3svc Stopped) becomes ErrorRecord; PS 2>&1 would abort Invoke-Command -ErrorAction Stop.
     cmd.exe /c "netsh lan show interfaces 2>&1" |
         Out-File -FilePath (Join-Path $RemoteStaging 'lan-interfaces.txt') -Encoding utf8
     cmd.exe /c "netsh lan show profiles 2>&1" |
@@ -67,7 +67,7 @@ $collect = {
             Export-Csv -Path $csv -NoTypeInformation -Encoding UTF8
     }
     else {
-        'Brak zdarzeń w zadanym oknie.' | Out-File -FilePath $csv -Encoding utf8
+        'No events in the requested window.' | Out-File -FilePath $csv -Encoding utf8
     }
 
     # MSFT_NetAdapter.NdisPhysicalMedium: 802.3 = 14
@@ -79,7 +79,7 @@ $collect = {
         $ethernet | Format-List -Property * | Out-File -FilePath $adapterFile -Encoding utf8
     }
     else {
-        'Brak adaptera Ethernet (NdisPhysicalMedium 802.3).' |
+        'No Ethernet adapter (NdisPhysicalMedium 802.3).' |
             Out-File -FilePath $adapterFile -Encoding utf8
     }
 
@@ -88,7 +88,7 @@ $collect = {
     }
 }
 
-Write-Log 'Start zbierania diagnostyki Ethernet.'
+Write-Log 'Start collecting Ethernet diagnostics.'
 
 $computers = foreach ($line in Get-Content -LiteralPath $ComputerListPath -Encoding UTF8) {
     $name = $line.Trim()
@@ -99,14 +99,14 @@ $computers = foreach ($line in Get-Content -LiteralPath $ComputerListPath -Encod
 
 foreach ($Computer in $computers) {
     try {
-        Write-Log "Start hosta: $Computer"
+        Write-Log "Start host: $Computer"
 
         try {
             $null = Test-WSMan -ComputerName $Computer -ErrorAction Stop
             Write-Log "WinRM OK: $Computer" -Level Success
         }
         catch {
-            Write-Log "WinRM nieudany, pominięto: $Computer — $($_.Exception.Message)" -Level Error
+            Write-Log "WinRM failed, skipped: $Computer - $($_.Exception.Message)" -Level Error
             continue
         }
 
@@ -117,21 +117,21 @@ foreach ($Computer in $computers) {
             -ArgumentList $EventDays, $RemoteStaging -ErrorAction Stop
 
         if ($result.EthernetAdapterCount -eq 0) {
-            Write-Log "Brak adaptera Ethernet: $Computer" -Level Warn
+            Write-Log "No Ethernet adapter: $Computer" -Level Warn
         }
 
         $uncRoot = '\\' + $Computer + '\c$' + $RemoteStaging.Substring(2)
-        Write-Log "Kopiowanie z $Computer..."
+        Write-Log "Copying from $Computer..."
         Copy-Item -Path ($uncRoot + '\*') -Destination $localDir -Force -ErrorAction Stop
-        Write-Log "Kopiowanie zakończone: $Computer" -Level Success
+        Write-Log "Copy finished: $Computer" -Level Success
 
         Remove-Item -LiteralPath $uncRoot -Recurse -Force -ErrorAction Stop
-        Write-Log "Usunięto katalog tymczasowy: $Computer" -Level Success
-        Write-Log "Zakończono hosta: $Computer" -Level Success
+        Write-Log "Removed temp folder: $Computer" -Level Success
+        Write-Log "Finished host: $Computer" -Level Success
     }
     catch {
-        Write-Log "Błąd [$Computer]: $($_.Exception.Message)" -Level Error
+        Write-Log "Error [$Computer]: $($_.Exception.Message)" -Level Error
     }
 }
 
-Write-Log 'Zakończono zbieranie diagnostyki Ethernet.' -Level Success
+Write-Log 'Finished collecting Ethernet diagnostics.' -Level Success
