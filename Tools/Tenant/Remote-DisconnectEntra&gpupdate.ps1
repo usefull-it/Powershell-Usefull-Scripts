@@ -8,7 +8,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Odlacz-Entra-Gpupdate
 Domyślna lista: komputery.txt obok tego skryptu. Jedna nazwa jednostki w wierszu.
 Puste wiersze i wiersze zaczynające się od # (po obcięciu spacji) są pomijane.
 
-Konto operatora musi mieć prawa administratora na jednostkach z dostępem do WinRM.
+Konto z którego uruchamiamy skrypt musi mieć prawa administratora na jednostkach oraz do WinRM.
 W domenie wystarcza Kerberos (standardowe PSRemoting), dlatego nie używamy parametru -Credential.
 dsregcmd /leave wymaga podniesienia uprawnień na jednostce docelowej — daje je zdalna sesja administratora.
 Klient WinRM nie wymaga podniesienia uprawnień na maszynie operatora, stąd brak parametru -RunAsAdministrator.
@@ -124,7 +124,7 @@ if ($nazwy.Count -eq 0) {
     return
 }
 
-#Pętla przetwarzania jednostek z listy.
+
 $i = 0
 foreach ($nazwa in $nazwy) {
     $i++
