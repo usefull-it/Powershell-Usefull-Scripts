@@ -3,6 +3,9 @@ Deploy-App.ps1 kopiuje folder, w którym leży, na kolejne komputery z listy
 i uruchamia tam install.bat. Nie czeka na koniec instalacji i nie usuwa
 folderu ze stacji.
 
+Nie uruchamiaj skryptu bezpośrednio z Powershell ISE,
+utwórz batch uruchamiający ten skrypt i uruchom go jako administrator.
+
 Uruchomienie:
 Deploy-App.cmd
 Deploy-App.cmd -ComputerList sciezka\do\listy.txt
