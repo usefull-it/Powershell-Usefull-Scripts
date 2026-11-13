@@ -1,7 +1,7 @@
 <#
-W katalogu treści SCCM muszą leżeć ten instalator, plik *.bat z komendą instalacji, MigrationPanel.ps1 oraz MigrationIcon.ico.
+W katalogu treści SCCM muszą leżeć ten instalator, plik *.bat z komendą instalacji, plik PowershellApp.ps1 oraz plik PowershellAppIcon.ico.
 Proponowana komenda instalacji:
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Install-WsparcieMigracja.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Install-Link&Script.ps1
 #>
 
 $panelSource = Join-Path $PSScriptRoot 'PowershellApp.ps1'
