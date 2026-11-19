@@ -1,18 +1,18 @@
-﻿<#
+<#
 Odłącza jednostki od Microsoft Entra ID i odświeża zasady grupy komputera.
 
 Uruchomienie:
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Odlacz-Entra-Gpupdate.ps1"
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Odlacz-Entra-Gpupdate.ps1" -ListaKomputerow "D:\lista\komputery.txt"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Remote-DisconnectEntraID.ps1"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Remote-DisconnectEntraID.ps1" -ListaKomputerow "D:\lista\komputery.txt"
 
 Domyślna lista: komputery.txt obok tego skryptu. Jedna nazwa jednostki w wierszu.
 Puste wiersze i wiersze zaczynające się od # (po obcięciu spacji) są pomijane.
 
-Konto z którego uruchamiamy skrypt musi mieć prawa administratora na jednostkach oraz do WinRM.
+Konto operatora musi mieć prawa administratora na jednostkach z dostępem do WinRM.
 W domenie wystarcza Kerberos (standardowe PSRemoting), dlatego nie używamy parametru -Credential.
 dsregcmd /leave wymaga podniesienia uprawnień na jednostce docelowej — daje je zdalna sesja administratora.
 Klient WinRM nie wymaga podniesienia uprawnień na maszynie operatora, stąd brak parametru -RunAsAdministrator.
-Oba polecenia idą pełną ścieżką System32 w sesji zdalnej (domyślny punkt końcowy WinRM jest 64-bitowy).
+Oba polecenia uruchamia zdalna sesja. Katalog wybiera bitowość tej sesji: proces 64-bitowy używa System32, a proces 32-bitowy na 64-bitowym Windows używa Sysnative, bo inaczej WOW64 podmienia System32 na SysWOW64 i nie znajduje dsregcmd.exe.
 
 Pomoc dsregcmd opisuje "/leave" jako "Performs Hybrid Unjoin". Na jednostce hybrydowej zadanie
 Automatic-Device-Join może zarejestrować ją ponownie po restarcie i logowaniu domenowym.
@@ -72,6 +72,56 @@ function Write-Podsumowanie {
 }
 
 
+function Invoke-PolecenieSystemowe {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Komputer,
+
+        [Parameter(Mandatory = $true)]
+        [string]$NazwaPliku,
+
+        [Parameter(Mandatory = $true)]
+        [string[]]$Argumenty
+    )
+
+    Invoke-Command -ComputerName $Komputer -ErrorAction Stop -ArgumentList $NazwaPliku, $Argumenty -ScriptBlock {
+        param(
+            [string]$NazwaPliku,
+            [string[]]$Argumenty
+        )
+
+        $ErrorActionPreference = 'Continue'
+
+        function Get-KatalogSystemowy {
+            <#
+            Proces 32-bitowy na 64-bitowym Windows widzi System32 jako SysWOW64.
+            dsregcmd.exe jest tylko w prawdziwym System32. Sysnative omija to przekierowanie
+            i jest widoczny wyłącznie z procesu 32-bitowego, dlatego proces 64-bitowy zostaje przy System32.
+            #>
+            if ([Environment]::Is64BitOperatingSystem -and -not [Environment]::Is64BitProcess) {
+                return (Join-Path $env:SystemRoot 'Sysnative')
+            }
+
+            return (Join-Path $env:SystemRoot 'System32')
+        }
+
+        $exe = Join-Path (Get-KatalogSystemowy) $NazwaPliku
+
+        if (-not (Test-Path -LiteralPath $exe)) {
+            return [pscustomobject]@{ ExitCode = 1; Output = "Brak pliku: $exe" }
+        }
+
+        $Argumenty = @($Argumenty)
+        $linie = & $exe @Argumenty 2>&1
+
+        [pscustomobject]@{
+            ExitCode = $LASTEXITCODE
+            Output   = (($linie | Out-String).TrimEnd())
+        }
+    }
+}
+
+
 #Sprawdzanie, czy plik z listą jednostek istnieje.
 if (-not (Test-Path -LiteralPath $ListaKomputerow -PathType Leaf)) {
     $komunikat = "Brak pliku z listą jednostek: $ListaKomputerow"
@@ -124,7 +174,7 @@ if ($nazwy.Count -eq 0) {
     return
 }
 
-
+#Pętla przetwarzania jednostek z listy.
 $i = 0
 foreach ($nazwa in $nazwy) {
     $i++
@@ -138,18 +188,7 @@ foreach ($nazwa in $nazwy) {
     $leave = $null
     try {
         #Wywołanie dsregcmd /leave z sesją zdalną administratora.
-        $leave = Invoke-Command -ComputerName $nazwa -ErrorAction Stop -ScriptBlock {
-            $ErrorActionPreference = 'Continue'
-            $exe = Join-Path $env:SystemRoot 'System32\dsregcmd.exe'
-            if (-not (Test-Path -LiteralPath $exe)) {
-                return [pscustomobject]@{ ExitCode = 1; Output = "Brak pliku: $exe" }
-            }
-            $linie = & $exe /leave 2>&1
-            [pscustomobject]@{
-                ExitCode = $LASTEXITCODE
-                Output   = (($linie | Out-String).TrimEnd())
-            }
-        }
+        $leave = Invoke-PolecenieSystemowe -Komputer $nazwa -NazwaPliku 'dsregcmd.exe' -Argumenty @('/leave')
     }
     catch {
         $szczegoly = ($_ | Out-String).TrimEnd()
@@ -201,18 +240,7 @@ foreach ($nazwa in $nazwy) {
     $gp = $null
     try {
         #Wywołanie gpupdate /target:computer /force z sesją zdalną administratora.
-        $gp = Invoke-Command -ComputerName $nazwa -ErrorAction Stop -ScriptBlock {
-            $ErrorActionPreference = 'Continue'
-            $exe = Join-Path $env:SystemRoot 'System32\gpupdate.exe'
-            if (-not (Test-Path -LiteralPath $exe)) {
-                return [pscustomobject]@{ ExitCode = 1; Output = "Brak pliku: $exe" }
-            }
-            $linie = & $exe /target:computer /force 2>&1
-            [pscustomobject]@{
-                ExitCode = $LASTEXITCODE
-                Output   = (($linie | Out-String).TrimEnd())
-            }
-        }
+        $gp = Invoke-PolecenieSystemowe -Komputer $nazwa -NazwaPliku 'gpupdate.exe' -Argumenty @('/target:computer', '/force')
     }
 
 
