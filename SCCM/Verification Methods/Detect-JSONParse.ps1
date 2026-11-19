@@ -1,5 +1,5 @@
 $Path = 'C:\ŚCIEŻKA\DO\pliku.json'
-$ExpectedHost = 'addon.goskope.com'
+$ExpectedHost = 'test.scope.com'
 
 if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
     exit 0
