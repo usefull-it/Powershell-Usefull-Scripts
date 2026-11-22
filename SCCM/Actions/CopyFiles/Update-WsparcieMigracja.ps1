@@ -1,11 +1,11 @@
-# Usuwa 9 plików PDF z folderu WSPARCIE_MIGRACJA na publicznym pulpicie
-# i kopiuje jeden plik PDF z folderu WSPARCIE_MIGRACJA obok tego skryptu.
+# Usuwa 9 plików PDF z folderu YOUR_DOCUMENTS na publicznym pulpicie
+# i kopiuje jeden plik PDF z folderu YOUR_DOCUMENTS obok tego skryptu.
 # Uzupełnij nazwy w $FilesToRemove i $FileToCopy.
 # Kod wyjścia 0 to sukces. Inny kod SCCM ma widzieć jako błąd programu.
 
 $ErrorActionPreference = 'Stop'
 
-$FolderName = 'WSPARCIE_MIGRACJA'
+$FolderName = 'YOUR_DOCUMENTS'
 
 $FilesToRemove = @(
     'DO_USUNIECIA_1.pdf'
