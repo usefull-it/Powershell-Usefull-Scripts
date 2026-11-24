@@ -114,6 +114,7 @@ function Invoke-AzureAdJoinedDetection {
             return (Get-DetectionResult -FailureReason 'dsregcmd.exe timed out')
         }
 
+        # WaitForExit(int) can return before async redirected reads finish.
         $process.WaitForExit()
         $stdout = $stdoutTask.Result
         $null = $stderrTask.Result
