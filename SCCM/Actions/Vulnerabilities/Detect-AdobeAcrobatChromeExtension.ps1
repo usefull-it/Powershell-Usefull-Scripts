@@ -95,9 +95,9 @@ function Get-ExtensionDirectories {
     param([Parameter(Mandatory)][string[]]$ProfileDirectories)
 
     $found = New-Object System.Collections.Generic.List[string]
-    foreach ($profile in $ProfileDirectories) {
+    foreach ($userProfile in $ProfileDirectories) {
         foreach ($relativeRoot in $UserDataRelativeRoots) {
-            $userData = Join-Path $profile $relativeRoot
+            $userData = Join-Path $userProfile $relativeRoot
             if (-not (Test-Path -LiteralPath $userData -PathType Container)) { continue }
             if (Test-ReparsePoint -LiteralPath $userData) {
                 throw "Refusing to walk a reparse point: $userData"
